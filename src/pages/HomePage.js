@@ -11,7 +11,7 @@ function HomePage() {
                 </Link>
                 <Link to='/quiz'>
                     <img src='./images/app-icons/quiz.png' alt='quiz'/>
-                    Quiz
+                    Bubble Quiz
                 </Link>
                 <Link to='/photogramm'>
                     <img src='./images/app-icons/photogramm.webp' alt='photogramm'/>
