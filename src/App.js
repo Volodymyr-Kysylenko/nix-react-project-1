@@ -1,11 +1,12 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
 import HomePage from './pages/HomePage';
 import CurrencyConverterPage from './pages/CurrencyСonverterPage';
 import QuizPage from './pages/QuizPage';
 import PhotoGrammPage from './pages/PhotoGrammPage';
 import Layout from './pages/Layout';
 
-function App() {
+export default function App() {
   return (
     <main className='app'>
       <BrowserRouter>
@@ -21,5 +22,3 @@ function App() {
     </main >
   );
 }
-
-export default App;

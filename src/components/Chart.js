@@ -43,6 +43,17 @@ const Days = [getDate(6), getDate(5), getDate(4), getDate(3), getDate(2), getDat
 const Months = [getMonth(6), getMonth(5), getMonth(4), getMonth(3), getMonth(2), getMonth(1), getMonth()];
 
 export default function Chart({ period, from, fromCurrency, toCurrency }) {
+    const options = {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+            title: {
+                display: true,
+                text: '1 ' + fromCurrency + ' to ' + toCurrency + ' by ' + period,
+            },
+        }
+    };
+
     const [data, setData] = useState({
         labels: (period === 'Days') ? Days : Months,
         datasets: [
@@ -53,21 +64,8 @@ export default function Chart({ period, from, fromCurrency, toCurrency }) {
                     return from;
                 })
             }
-        ],
+        ]
     });
-
-    const options = {
-        responsive: true,
-        plugins: {
-            legend: {
-                display: false
-            },
-            title: {
-                display: true,
-                text: '1 ' + fromCurrency + ' to ' + toCurrency + ' by ' + period,
-            },
-        },
-    };
 
     useEffect(() => {
         const delta = (fromCurrency === 'UAH') ? 0.002 : 0.1;
@@ -84,8 +82,7 @@ export default function Chart({ period, from, fromCurrency, toCurrency }) {
                 }
             ],
         })
-    }, [from])
-
+    }, [from]);
 
     return <Line options={options} data={data} />;
 }

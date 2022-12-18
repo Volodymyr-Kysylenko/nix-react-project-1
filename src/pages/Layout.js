@@ -4,6 +4,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 export default function Layout() {
     const [time, setTime] = useState((new Date()).toLocaleTimeString('uk-UK'));
     const [appIcon, setAppIcon] = useState(false);
+
     let location = useLocation().pathname;
 
     useEffect(() => {
@@ -34,19 +35,19 @@ export default function Layout() {
             <footer>
                 <div>
                     <Link to='/'>
-                        <img src="./images/icon.svg" />
+                        <img src='/images/icon.svg' alt='Home icon' />
                     </Link>
                 </div>
                 <div>
                     {
                         (appIcon) ?
                             <div className='active-app'>
-                                <img src={'./images/app-icons/' + appIcon} alt='photogramm' />
+                                <img src={'/images/app-icons/' + appIcon} alt='photogramm' />
                             </div>
                             : null
                     }
                 </div>
-                <div className="clock">
+                <div className='clock'>
                     <p>{time}</p>
                     <p>{(new Date()).toLocaleDateString('uk-UK')}</p>
                 </div>

@@ -8,7 +8,6 @@ import getPhotos from '../app/photos';
 
 export default function PhotoGrammPage() {
     const images = getPhotos();
-
     const imagesPerPage = 12;
 
     const [search, setSearch] = useState(false);
@@ -25,6 +24,7 @@ export default function PhotoGrammPage() {
         let amount = Math.ceil(length / imagesPerPage);
         let paginationCounter = 1;
         let pagesAmount = [];
+
         while (paginationCounter <= amount) {
             pagesAmount.push(paginationCounter);
             paginationCounter++;
@@ -33,8 +33,8 @@ export default function PhotoGrammPage() {
     }
 
     function updatePageAmount(length) {
-
         let amount = getPageAmount(length);
+
         if (pages.length === amount.length) return;
         setPages(amount);
         setPageAmount(amount.length);
@@ -59,8 +59,9 @@ export default function PhotoGrammPage() {
     }
 
     function showImage(e, image) {
-        if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'svg' && e.target.tagName !== 'path')
+        if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'svg' && e.target.tagName !== 'path') {
             setDisplayImage(image);
+        }
     }
 
     function hideImage() {
@@ -68,11 +69,7 @@ export default function PhotoGrammPage() {
     }
 
     function changeHeaderHeight() {
-        document.querySelector('.search').style.height = '18vh';
-        document.querySelector('.search h1').style.fontSize = '0px';
-        document.querySelector('.search h1').style.margin = '0';
-        document.querySelector('.search h2').style.fontSize = '0px';
-        document.querySelector('.search h2').style.margin = '0';
+        document.querySelector('.search').classList.add('min');
     }
 
     return (
@@ -92,32 +89,44 @@ export default function PhotoGrammPage() {
                     </h2>
                     <div className='search-input'>
                         <input
-                            placeholder='Type your request'
+                            placeholder='Search by name, category or tag'
                             type='text'
                             onChange={showSearchResults}
                             onFocus={changeHeaderHeight}
                         />
                         <button onClick={clearSearch}>
-                            <img src='/images/icons/close.svg' />
+                            <img src='/images/icons/close.svg' alt='Clear input icon'/>
                         </button>
                     </div>
                     <div className='categories'>
-                        <button className={(filter === false) ? 'active' : ''} onClick={() => showFilteringResults(false)}>
+                        <button 
+                            className={(filter === false) ? 'active' : ''} 
+                            onClick={() => showFilteringResults(false)}>
                             All
                         </button>
-                        <button className={(filter === 'animals') ? 'active' : ''} onClick={() => showFilteringResults('animals')}>
+                        <button 
+                            className={(filter === 'animals') ? 'active' : ''} 
+                            onClick={() => showFilteringResults('animals')}>
                             Animals
                         </button>
-                        <button className={(filter === 'nature') ? 'active' : ''} onClick={() => showFilteringResults('nature')}>
+                        <button 
+                            className={(filter === 'nature') ? 'active' : ''} 
+                            onClick={() => showFilteringResults('nature')}>
                             Nature
                         </button>
-                        <button className={(filter === 'architecture') ? 'active' : ''} onClick={() => showFilteringResults('architecture')}>
+                        <button 
+                            className={(filter === 'architecture') ? 'active' : ''} 
+                            onClick={() => showFilteringResults('architecture')}>
                             Architecture
                         </button>
-                        <button className={(filter === 'art') ? 'active' : ''} onClick={() => showFilteringResults('art')}>
+                        <button 
+                            className={(filter === 'art') ? 'active' : ''} 
+                            onClick={() => showFilteringResults('art')}>
                             Art
                         </button>
-                        <button className={(filter === 'food') ? 'active' : ''} onClick={() => showFilteringResults('food')}>
+                        <button 
+                            className={(filter === 'food') ? 'active' : ''} 
+                            onClick={() => showFilteringResults('food')}>
                             Food
                         </button>
                     </div>
@@ -126,17 +135,17 @@ export default function PhotoGrammPage() {
                 <div className='page-selector-sorting'>
                     <div>
                         <button
-                            className={sorting !== 'id' || 'active'}
+                            className={(sorting === 'id') ? 'active' : ''}
                             onClick={() => setSorting('id')}>
                             By Date
                         </button>
                         <button
-                            className={sorting !== 'name' || 'active'}
+                            className={(sorting === 'name') ? 'active' : ''}
                             onClick={() => setSorting('name')}>
                             By Name
                         </button>
                         <button
-                            className={sorting !== 'author' || 'active'}
+                            className={(sorting === 'author') ? 'active' : ''}
                             onClick={() => setSorting('author')}>
                             By Author
                         </button>
@@ -163,7 +172,7 @@ export default function PhotoGrammPage() {
                         disabled={(page === 1) ? true : false}>
                         <img
                             style={{ transform: 'rotateZ(90deg)' }}
-                            src='./images/icons/down.svg'
+                            src='/images/icons/down.svg'
                             alt='Arrow icon' />
                     </button>
                     {pages.map(button => {
@@ -181,7 +190,7 @@ export default function PhotoGrammPage() {
                         disabled={(page === pageAmount) ? true : false}>
                         <img
                             style={{ transform: 'rotateZ(-90deg)' }}
-                            src='./images/icons/down.svg'
+                            src='/images/icons/down.svg'
                             alt='Arrow icon' />
                     </button>
                 </div>

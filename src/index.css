@@ -424,7 +424,7 @@ footer>div:nth-child(2) {
   width: 400px;
 }
 
-.frequent-values>div>div > * {
+.frequent-values>div>div>* {
   display: flex;
   justify-content: center;
 }
@@ -475,7 +475,6 @@ footer>div:nth-child(2) {
     gap: 24px;
   }
 }
-
 
 /* Quiz */
 .quiz {
@@ -593,8 +592,6 @@ footer>div:nth-child(2) {
   background: #de36ff2b;
   border: 1px solid rgba(74, 74, 74, 0.06);
 }
-
-
 
 .answers {
   display: grid;
@@ -730,11 +727,11 @@ footer>div:nth-child(2) {
   border: 1px solid #ff00d01a;
   font-weight: 300;
   text-transform: uppercase;
-  transition: all .4s;
+  transition: opacity .4s;
 }
 
 .quiz-menu button:hover {
-  opacity: .9;
+  opacity: .8;
 }
 
 .quiz-results {
@@ -834,11 +831,6 @@ footer>div:nth-child(2) {
   }
 }
 
-
-
-
-
-
 /* Photogramm */
 .photogramm {
   height: 91vh;
@@ -859,6 +851,16 @@ footer>div:nth-child(2) {
   background-repeat: no-repeat;
   background-position: center center;
   transition: all .4s;
+}
+
+.search.min {
+  height: 19vh;
+}
+
+.search.min h1,
+.search.min h2 {
+  font-size: 0;
+  margin: 0;
 }
 
 .search h1 {
@@ -1090,8 +1092,6 @@ footer>div:nth-child(2) {
   height: 100px;
 }
 
-
-
 .pagination {
   display: flex;
   justify-content: center;
@@ -1124,8 +1124,6 @@ footer>div:nth-child(2) {
 .pagination button.active {
   background-color: #add7f9c7;
 }
-
-
 
 .photo-view-container {
   position: fixed;

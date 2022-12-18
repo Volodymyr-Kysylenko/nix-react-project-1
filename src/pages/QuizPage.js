@@ -22,14 +22,10 @@ export default function QuizPage() {
 
     useEffect(() => {
         if (currentQuestion !== null) {
-            // let timerBorder = 0;
-            // setCirc(timerBorder);
             let timerCounter = timeOut;
             setTime(timerCounter);
             const timerInterval = setInterval(() => {
                 setTime(--timerCounter);
-                // timerBorder += 150.796416 / (timeOut - 1);
-                // setCirc(timerBorder);
             }, 1000);
             const timer = setTimeout(() => saveAnswer(), timeOut * 1000);
             return () => {
@@ -90,7 +86,7 @@ export default function QuizPage() {
                         <div className='question-bubbles'>
                             {
                                 questions.map((question, index) => {
-                                    return <span className={currentQuestion !== index || 'active'}>
+                                    return <span key={index} className={(currentQuestion === index) ? 'active' : ''}>
                                         {index + 1}
                                     </span>
                                 })
