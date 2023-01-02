@@ -1,24 +1,65 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import Header from '../components/Header';
-import PhotoCards from '../components/PhotoCards';
-import PhotoView from '../components/PhotoView';
-
-import getPhotos from '../app/photos';
+import CategoryButton from '../components/photogramm/CategoryButton';
+import PhotoCards from '../components/photogramm/PhotoCards';
+import PhotoView from '../components/photogramm/PhotoView';
+import SortingButton from '../components/photogramm/SortingButton';
+import PaginationButton from '../components/photogramm/PaginationButton';
 
 export default function PhotoGrammPage() {
-    const images = getPhotos();
     const imagesPerPage = 12;
 
+    const [images, setImages] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState(false);
     const [filter, setFilter] = useState(false);
     const [sorting, setSorting] = useState('id');
     const [page, setPage] = useState(1);
     const [displayImage, setDisplayImage] = useState(false);
-    const [pages, setPages] = useState(getPageAmount());
-    const [pageAmount, setPageAmount] = useState(Math.ceil(images.length / imagesPerPage));
+    const [pages, setPages] = useState([1]);
+    const [pageAmount, setPageAmount] = useState(1);
 
+    useEffect(() => {
+        fetch('https://nix-project.herokuapp.com/api/images-count', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({page: page, search: search, filter: filter})
+        })
+            .then(res => res.json())
+            .then(res => {
+                console.log(res.count);
+                setPageAmount(Math.ceil(res.count / imagesPerPage));
+                setPages(() => {
+                    const pageArray = getPageAmount(res.count);
+                    return (pageArray.length === 0) ? [1] : pageArray;
+                });
+            });
+    }, [filter, search, page]);
 
+    
+    useEffect(() => {
+        fetch('https://nix-project.herokuapp.com/api/images', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({page: page, search: search, filter: filter})
+        })
+            .then(res => res.json())
+            .then(photos => {
+                console.log(photos);
+                setImages(photos);
+                setLoading(false);
+            })
+    }, [filter, search, page]);
+
+    useEffect(() => {
+        document.querySelector('.photogramm').scrollTo(0, 0);
+    }, [page]);
+    
 
     function getPageAmount(length = images.length) {
         let amount = Math.ceil(length / imagesPerPage);
@@ -32,33 +73,36 @@ export default function PhotoGrammPage() {
         return pagesAmount;
     }
 
-    function updatePageAmount(length) {
-        let amount = getPageAmount(length);
-
-        if (pages.length === amount.length) return;
-        setPages(amount);
-        setPageAmount(amount.length);
-    }
-
     function showSearchResults(e) {
         let value = (e.target.value).toLowerCase();
         setSearch((value !== '') ? value : false);
         setPage(1);
         setPageAmount(pages[pages.length - 1]);
+        setLoading(true);
     }
 
     function clearSearch() {
-        setPage(1);
-        setSearch(false);
-        document.querySelector('.search-input input').value = '';
+        if (search) {
+            setLoading(true);
+            setPage(1);
+            setSearch(false);
+            document.querySelector('.search-input input').value = '';
+        }
     }
 
     function showFilteringResults(filter) {
+        setLoading(true);
         setPage(1);
         setFilter(filter);
     }
 
+    function showSortingResult(sorting) {
+        setSorting(sorting);
+    }
+
     function showImage(e, image) {
+        console.log(e.target);
+        console.log(e.currentTarget);
         if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'svg' && e.target.tagName !== 'path') {
             setDisplayImage(image);
         }
@@ -72,12 +116,19 @@ export default function PhotoGrammPage() {
         document.querySelector('.search').classList.add('min');
     }
 
+    function changeCurrentPage(newPageNumber) {
+        setLoading(true);
+        // document.querySelector('.photogramm').scrollTo(0, 0); 
+        setPage(newPageNumber);
+    }
+
     return (
         <>
             <Header
                 title='PhotoGramm'
                 bgColor='#fff'
-                color='#000' />
+                color='#000'    
+            />
 
             <main className='photogramm'>
                 <div className='search' style={{ backgroundImage: 'url("/images/photogramm-background.jpg")' }}>
@@ -99,102 +150,65 @@ export default function PhotoGrammPage() {
                         </button>
                     </div>
                     <div className='categories'>
-                        <button 
-                            className={(filter === false) ? 'active' : ''} 
-                            onClick={() => showFilteringResults(false)}>
-                            All
-                        </button>
-                        <button 
-                            className={(filter === 'animals') ? 'active' : ''} 
-                            onClick={() => showFilteringResults('animals')}>
-                            Animals
-                        </button>
-                        <button 
-                            className={(filter === 'nature') ? 'active' : ''} 
-                            onClick={() => showFilteringResults('nature')}>
-                            Nature
-                        </button>
-                        <button 
-                            className={(filter === 'architecture') ? 'active' : ''} 
-                            onClick={() => showFilteringResults('architecture')}>
-                            Architecture
-                        </button>
-                        <button 
-                            className={(filter === 'art') ? 'active' : ''} 
-                            onClick={() => showFilteringResults('art')}>
-                            Art
-                        </button>
-                        <button 
-                            className={(filter === 'food') ? 'active' : ''} 
-                            onClick={() => showFilteringResults('food')}>
-                            Food
-                        </button>
+                        <CategoryButton value={false} filter={filter} showFilteringResults={showFilteringResults} />
+                        <CategoryButton value={'animals'} filter={filter} showFilteringResults={showFilteringResults} />
+                        <CategoryButton value={'nature'} filter={filter} showFilteringResults={showFilteringResults} />
+                        <CategoryButton value={'architecture'} filter={filter} showFilteringResults={showFilteringResults} />
+                        <CategoryButton value={'art'} filter={filter} showFilteringResults={showFilteringResults} />
+                        <CategoryButton value={'food'} filter={filter} showFilteringResults={showFilteringResults} />
                     </div>
                 </div>
 
                 <div className='page-selector-sorting'>
                     <div>
-                        <button
-                            className={(sorting === 'id') ? 'active' : ''}
-                            onClick={() => setSorting('id')}>
-                            By Date
-                        </button>
-                        <button
-                            className={(sorting === 'name') ? 'active' : ''}
-                            onClick={() => setSorting('name')}>
-                            By Name
-                        </button>
-                        <button
-                            className={(sorting === 'author') ? 'active' : ''}
-                            onClick={() => setSorting('author')}>
-                            By Author
-                        </button>
+                        <SortingButton value={'id'} sorting={sorting} showSortingResult={showSortingResult} />
+                        <SortingButton value={'name'} sorting={sorting} showSortingResult={showSortingResult} />
+                        <SortingButton value={'author'} sorting={sorting} showSortingResult={showSortingResult} />
                     </div>
                     <div>
                         Page {page} of {pageAmount}
                     </div>
                 </div>
                 <div className='photocards'>
-                    <PhotoCards
+                {loading 
+                    ? <div className='spinner photogramm-spinner'></div>
+                    : <PhotoCards
                         images={images}
-                        filter={filter}
-                        search={search}
                         sorting={sorting}
-                        page={page}
-                        imagesPerPage={imagesPerPage}
                         showImage={showImage}
-                        updatePageAmount={updatePageAmount}
                     />
+                }
                 </div>
                 <div className='pagination'>
                     <button
-                        onClick={() => { document.querySelector('.photogramm').scrollTo(0, 0); setPage(page - 1); }}
+                        onClick={() => {changeCurrentPage(page - 1)}}
                         disabled={(page === 1) ? true : false}>
                         <img
                             style={{ transform: 'rotateZ(90deg)' }}
                             src='/images/icons/down.svg'
-                            alt='Arrow icon' />
+                            alt='Arrow icon'
+                        />
                     </button>
-                    {pages.map(button => {
-                        return (
-                            <button
-                                className={(page === button) ? 'active' : ''}
-                                key={'Button for page ' + button}
-                                onClick={() => { document.querySelector('.photogramm').scrollTo(0, 0); setPage(button); }}>
-                                {button}
-                            </button>
+                    {pages.map(pageNumber => {
+                        return ( 
+                            <PaginationButton key={pageNumber} page={page} pageNumber={pageNumber} changeCurrentPage={changeCurrentPage} />
                         )
                     })}
                     <button
-                        onClick={() => { document.querySelector('.photogramm').scrollTo(0, 0); setPage(+page + 1); }}
+                        onClick={() => {changeCurrentPage(page + 1)}}
                         disabled={(page === pageAmount) ? true : false}>
                         <img
                             style={{ transform: 'rotateZ(-90deg)' }}
                             src='/images/icons/down.svg'
-                            alt='Arrow icon' />
+                            alt='Arrow icon' 
+                        />
                     </button>
                 </div>
-                {(displayImage) ? <PhotoView image={displayImage} hideImage={hideImage} /> : null}
+                {
+                    (displayImage) ? 
+                    <PhotoView image={displayImage} hideImage={hideImage} /> 
+                    : null
+                }
             </main>
         </>
     )

@@ -1,51 +1,68 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import Header from '../components/Header';
-import Chart from '../components/Chart';
-
-import getExchangeRate from '../app/exchangeRate';
+import CurrencyInput from '../components/converter/CurrencyInput';
+import CopyValueButton from '../components/converter/CopyValueButton';
+import ChangeCurrencyButton from '../components/converter/ChangeCurrencyButton';
+import Chart from '../components/converter/Chart';
+import FrequentValues from '../components/converter/FrequentValues';
 
 export default function CurrencyConverterPage() {
-    const exchangeRate = getExchangeRate();
-    const frequentValues = [1, 2, 3, 4, 5, 10, 20, 50, 100, 1000];
+    const frequentValues = [1, 2, 3, 4, 5, 10, 20, 50, 75, 100];
+
+    const [loading, setLoading] = useState(true);
+
+    const [exchangeRate, setExchangeRate] = useState({});
 
     const [fromCurrency, setFromCurrency] = useState('USD');
     const [toCurrency, setToCurrency] = useState('UAH');
 
     const [fromValue, setFromValue] = useState(1);
-    const [toValue, setToValue] = useState(exchangeRate.USD.UAH);
+    const [toValue, setToValue] = useState('');
 
     const [fromSelect, setFromSelect] = useState('none');
     const [toSelect, setToSelect] = useState('none');
+    
+    useEffect(() => {
+        fetch('https://nix-project.herokuapp.com/api/exchange-rate')
+            .then(res => res.json())
+            .then(exchangeRateRes => {
+                setExchangeRate(exchangeRateRes);
+                setToValue(exchangeRateRes.USD.UAH);
+            })
+            .then(() => setLoading(false));
+    }, []);
+    
+    function fromValueHandler(e) {
+        let fromValueString = e.target.value;
+        let fromValueNumber = parseFloat(fromValueString);
 
-    function from(e) {
-        let value = parseFloat(e.target.value);
+        if (fromValueString.split('.')[1]?.length > 2) return;
 
-        if (e.target.value.split('.')[1] && (String(e.target.value.split('.')[1])).length > 2) return;
-
-        if (isNaN(value)) {
+        if (isNaN(fromValueNumber)) {
             setToValue(0);
             setFromValue('');
             return;
         }
 
-        setFromValue((value < 0) ? 0 : value);
-        setToValue(parseFloat(+((value < 0) ? 0 : value * exchangeRate[fromCurrency][toCurrency]).toFixed(2)));
+        setFromValue((fromValueNumber < 0) ? 0 : fromValueNumber);
+        setToValue(parseFloat(((fromValueNumber < 0) ? 0 : fromValueNumber * exchangeRate[fromCurrency][toCurrency]).toFixed(2)));
     }
 
-    function to(e) {
-        let value = parseFloat(e.target.value);
+    function toValueHandler(e) {
+        let toValueString = e.target.value;
+        let toValueNumber = parseFloat(toValueString);
 
-        if (e.target.value.split('.')[1] && (String(e.target.value.split('.')[1])).length > 4) return;
+        if (toValueString.split('.')[1]?.length > 2) toValueNumber = +toValueNumber.toFixed(2);
 
-        if (isNaN(value)) {
+        if (isNaN(toValueNumber)) {
             setFromValue(0);
             setToValue('');
             return;
         }
 
-        setToValue((value < 0) ? 0 : value);
-        setFromValue(parseFloat(+((value < 0) ? 0 : value * exchangeRate[toCurrency][fromCurrency]).toFixed(2)));
+        setToValue((toValueNumber < 0) ? 0 : toValueNumber);
+        setFromValue(parseFloat(((toValueNumber < 0) ? 0 : toValueNumber * exchangeRate[toCurrency][fromCurrency]).toFixed(2)));
     }
 
     function changeCurrency(e, value = fromValue) {
@@ -86,7 +103,7 @@ export default function CurrencyConverterPage() {
         setToSelect('none');
     }
 
-    function hideSelect(e) {
+    function hideCurrencySelector(e) {
         if (!e.target.classList.contains('converter-control-button')) {
             setFromSelect('none');
             setToSelect('none');
@@ -112,11 +129,15 @@ export default function CurrencyConverterPage() {
             <Header
                 title='Currency Converter'
                 bgColor='#5f7aff'
-                color='#fff' />
-            <div
+                color='#fff'
+            />
+
+            {loading
+            ? <div className='spinner converter-spinner'></div>
+            : <div
                 style={{ backgroundImage: 'url("/images/converter-background.jpg")' }}
                 className='converter'
-                onClick={hideSelect}>
+                onClick={hideCurrencySelector}>
                 <h1>
                     Currency Converter
                 </h1>
@@ -130,34 +151,22 @@ export default function CurrencyConverterPage() {
                                 From
                             </h3>
                             <div className='converter-control'>
-                                <input
-                                    type='number'
-                                    value={fromValue}
-                                    min='0'
-                                    data-currency={fromCurrency}
-                                    onChange={from} />
-                                <button
-                                    className='copy-value'
-                                    onClick={() => { navigator.clipboard.writeText(fromValue) }}>
-                                    <img src='/images/icons/copy.svg' alt='Copy icon' />
-                                </button>
+                                <CurrencyInput value={fromValue} handler={fromValueHandler} />
+                                <CopyValueButton value={fromValue} />
                                 <button className='converter-control-button' onClick={() => setFromSelect('block')}>
                                     <img src={`/images/flags/${fromCurrency}.png`} alt={fromCurrency} />
                                     {fromCurrency} - {exchangeRate[fromCurrency].fullName}
                                 </button>
                                 <div style={{ display: fromSelect }} className='control'>
-                                    <button onClick={() => changeFromCurrency('USD')}>
-                                        <img src='/images/flags/USD.png' alt='USD' />
-                                        USD - {exchangeRate.USD.fullName}
-                                    </button>
-                                    <button onClick={() => changeFromCurrency('EUR')}>
-                                        <img src='/images/flags/EUR.png' alt='EUR' />
-                                        EUR - {exchangeRate.EUR.fullName}
-                                    </button>
-                                    <button onClick={() => changeFromCurrency('UAH')}>
-                                        <img src='/images/flags/UAH.png' alt='UAH' />
-                                        UAH - {exchangeRate.UAH.fullName}
-                                    </button>
+                                    <ChangeCurrencyButton 
+                                        currency='USD' changeCurrency={changeFromCurrency} exchangeRate={exchangeRate} 
+                                    />
+                                    <ChangeCurrencyButton 
+                                        currency='EUR' changeCurrency={changeFromCurrency} exchangeRate={exchangeRate} 
+                                    />
+                                    <ChangeCurrencyButton 
+                                        currency='UAH' changeCurrency={changeFromCurrency} exchangeRate={exchangeRate} 
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -173,34 +182,22 @@ export default function CurrencyConverterPage() {
                                 To
                             </h3>
                             <div className='converter-control'>
-                                <input
-                                    type='number'
-                                    value={toValue}
-                                    min='0'
-                                    data-currency={toCurrency}
-                                    onChange={to} />
-                                <button
-                                    className='copy-value'
-                                    onClick={() => { navigator.clipboard.writeText(toValue) }}>
-                                    <img src='/images/icons/copy.svg' alt='Copy icon' />
-                                </button>
+                                <CurrencyInput value={toValue} handler={toValueHandler} />
+                                <CopyValueButton value={toValue} />
                                 <button className='converter-control-button' onClick={() => setToSelect('block')}>
                                     <img src={`/images/flags/${toCurrency}.png`} alt={toCurrency} />
                                     {toCurrency} - {exchangeRate[toCurrency].fullName}
                                 </button>
                                 <div style={{ display: toSelect }} className='control'>
-                                    <button onClick={() => changeToCurrency('USD')}>
-                                        <img src='/images/flags/USD.png' alt='USD' />
-                                        USD - {exchangeRate.USD.fullName}
-                                    </button>
-                                    <button onClick={() => changeToCurrency('EUR')}>
-                                        <img src='/images/flags/EUR.png' alt='EUR' />
-                                        EUR - {exchangeRate.EUR.fullName}
-                                    </button>
-                                    <button onClick={() => changeToCurrency('UAH')}>
-                                        <img src='/images/flags/UAH.png' alt='UAH' />
-                                        UAH - {exchangeRate.UAH.fullName}
-                                    </button>
+                                    <ChangeCurrencyButton 
+                                        currency='USD' changeCurrency={changeToCurrency} exchangeRate={exchangeRate} 
+                                    />
+                                    <ChangeCurrencyButton 
+                                        currency='EUR' changeCurrency={changeToCurrency} exchangeRate={exchangeRate} 
+                                    />
+                                    <ChangeCurrencyButton 
+                                        currency='UAH' changeCurrency={changeToCurrency} exchangeRate={exchangeRate} 
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -235,19 +232,16 @@ export default function CurrencyConverterPage() {
                             Convert {exchangeRate[fromCurrency].fullName} to {exchangeRate[toCurrency].fullName}
                         </h3>
                         {frequentValues.map((value) => {
-                            return <div key={value}>
-                                <button
-                                    className='quick-value'
-                                    onClick={() => setQuickFromValue(value)}>
-                                    {value} {fromCurrency}
-                                </button>
-                                <div>
-                                    <img src='/images/icons/up.svg' alt='' />
-                                </div>
-                                <div>
-                                    {+(value * exchangeRate[fromCurrency][toCurrency]).toFixed(4)} {toCurrency}
-                                </div>
-                            </div>
+                            return (    
+                                <FrequentValues 
+                                    key={fromCurrency + value}
+                                    value = {value} 
+                                    toCurrency = {fromCurrency}
+                                    fromCurrency = {toCurrency}
+                                    setQuickValue = {setQuickFromValue}
+                                    exchangeRate = {exchangeRate}    
+                                />
+                            )
                         })}
                     </div>
                     <div>
@@ -255,23 +249,20 @@ export default function CurrencyConverterPage() {
                             Convert {exchangeRate[toCurrency].fullName} to {exchangeRate[fromCurrency].fullName}
                         </h3>
                         {frequentValues.map((value) => {
-                            return <div key={value}>
-                                <button
-                                    className='quick-value'
-                                    onClick={() => setQuickToValue(value, changeCurrency)}>
-                                    {value} {toCurrency}
-                                </button>
-                                <div>
-                                    <img src='/images/icons/up.svg' alt='' />
-                                </div>
-                                <div>
-                                    {+(value * exchangeRate[toCurrency][fromCurrency]).toFixed(2)} {fromCurrency}
-                                </div>
-                            </div>
+                            return (    
+                                <FrequentValues 
+                                    key={toCurrency + value}
+                                    value = {value} 
+                                    toCurrency = {toCurrency}
+                                    fromCurrency = {fromCurrency}
+                                    setQuickValue = {setQuickToValue}
+                                    exchangeRate = {exchangeRate}    
+                                />
+                            )
                         })}
                     </div>
                 </div>
-            </div>
+            </div>}
         </>
     )
 }

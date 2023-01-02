@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 
 export default function Layout() {
-    const [time, setTime] = useState((new Date()).toLocaleTimeString('uk-UK'));
+    const [time, setTime] = useState((new Date()).toLocaleTimeString('uk-UK', {hour: '2-digit', minute:'2-digit'}));
     const [appIcon, setAppIcon] = useState(false);
 
     let location = useLocation().pathname;
 
     useEffect(() => {
-        const timerId = setInterval(() => setTime((new Date()).toLocaleTimeString('uk-UK')), 1000);
+        const timerId = setInterval(() => setTime((new Date()).toLocaleTimeString('uk-UK', {hour: '2-digit', minute:'2-digit'})), 1000);
         return () => clearInterval(timerId);
     }, []);
 
@@ -33,7 +33,7 @@ export default function Layout() {
         <>
             <Outlet />
             <footer>
-                <div>
+                <div className='home-button'>
                     <Link to='/'>
                         <img src='/images/icon.svg' alt='Home icon' />
                     </Link>

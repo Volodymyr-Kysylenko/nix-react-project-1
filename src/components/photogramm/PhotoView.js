@@ -1,11 +1,22 @@
+import React, {useState} from 'react';
+
 export default function PhotoView({ image, hideImage }) {
+    const [loaded, setLoaded] = useState(false);
+
     return (
         <div className='photo-view-container'>
             <div className='photo-view'>
                 <div>
                     <img
+                        style={loaded ? null : { display: 'none' }}
                         src={'./images/photogramm/' + image.src}
-                        alt={image.name} />
+                        alt={image.name}
+                        onLoad={() => setLoaded(true)}
+                    />
+                    <div 
+                        className='spinner'
+                        style={loaded ? { display: 'none' } : null}>
+                    </div>
                 </div>
                 <div>
                     <h2>
@@ -34,17 +45,17 @@ export default function PhotoView({ image, hideImage }) {
                     <div className='download-image'>
                         <a href={'/images/photogramm/' + image.src} download={image.name + '.jpg'}>
                             Download
-                            <img src='/images/icons/download.svg' />
+                            <img src='/images/icons/download.svg' alt='Download icon' />
                         </a>
                         <button
                             onClick={() => navigator.clipboard.writeText(window.location.origin + '/images/photogramm/' + image.src)}>
                             Copy link
-                            <img src='/images/icons/copy.svg' />
+                            <img src='/images/icons/copy.svg' alt='Copy icon' />
                         </button>
                     </div>
                     <div className='photo-view-button'>
                         <button onClick={hideImage}>
-                            <img src='/images/icons/close.svg' />
+                            <img src='/images/icons/close.svg' alt='Close icon' />
                         </button>
                     </div>
                 </div>

@@ -1,19 +1,22 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import Header from '../components/Header';
-
-import getQuestions from '../app/questions';
+import QuizList from '../components/quiz/QuizList';
+import Quiz from '../components/quiz/Quiz';
+import QuizResults from '../components/quiz/QuizResults';
 
 export default function QuizPage() {
-    const [questions, setQuestions] = useState(getQuestions(5));
-
-    const totalScore = questions.reduce((partialTotalScore, question) => partialTotalScore + question.weight, 0);
+    const [loading, setLoading] = useState(true);
+    const [questions, setQuestions] = useState([]);
+    const [totalScore, setTotalScore] = useState(0);
 
     const [quizActive, setQuizActive] = useState(false);
     const [quizStarted, setQuizStarted] = useState(false);
     const [quizName, setQuizName] = useState('Quiz');
+
+    
     const [currentQuestion, setCurrentQuestion] = useState(null);
-    const [circ, setCirc] = useState(0);
+    
     const [score, setScore] = useState(0);
     const [rightAnswers, setRightAnswers] = useState(0);
     const [time, setTime] = useState('');
@@ -28,6 +31,7 @@ export default function QuizPage() {
                 setTime(--timerCounter);
             }, 1000);
             const timer = setTimeout(() => saveAnswer(), timeOut * 1000);
+
             return () => {
                 clearTimeout(timer);
                 clearInterval(timerInterval);
@@ -35,17 +39,7 @@ export default function QuizPage() {
         }
     }, [currentQuestion]);
 
-    useEffect(() => {
-        let timerBorder = 0;
-        setCirc(timerBorder);
-        const timerInterval = setInterval(() => {
-            timerBorder += 151 / timeOut / 10;
-            setCirc(timerBorder);
-        }, 100);
-        return () => {
-            clearInterval(timerInterval);
-        };
-    }, [currentQuestion])
+    
 
     function saveAnswer(index = false) {
         const answer = index;
@@ -57,7 +51,7 @@ export default function QuizPage() {
             }
             setRightAnswers(rightAnswers + 1);
         }
-        
+
         if (currentQuestion + 1 === questions.length) {
             setQuizActive(false);
             return;
@@ -66,154 +60,95 @@ export default function QuizPage() {
         setCurrentQuestion(currentQuestion + 1);
     }
 
+    function tipHandler() {
+        setTipUsed(true);
+    }
+
+    function endQuiz() {
+        setLoading(true);
+        setQuizActive(false);
+    }
+
+    function startAgain() {
+        setLoading(false);
+        clearQuizProgress();
+        setCurrentQuestion(0);
+        setQuizActive(true);
+    }
+
+    function toQuizList() {
+        setLoading(true);
+        clearQuizProgress();
+        setCurrentQuestion(null);
+        setQuizStarted(false);
+        setQuizActive(false);
+    }
+
+    function clearQuizProgress() {
+        setTipUsed(false);
+        setScore(0);
+        setRightAnswers(0);
+    }
+
+    function startQuiz(id) {
+        fetch('https://nix-project.herokuapp.com/api/quiz', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({id: id})
+        })
+            .then(res => res.json())
+            .then(res => {
+                setQuizName(res.name);
+                setQuestions(res.questions);
+                setTimeOut(res.timer);
+                setTotalScore(res.questions.reduce((partialTotalScore, question) => partialTotalScore + question.weight, 0));
+            }).then(() => {
+                setCurrentQuestion(0);
+                setQuizStarted(true);
+                setQuizActive(true);
+                setLoading(false);
+            });
+    }
+
     return (
         <>
             <Header
                 title='Bubble Quiz'
                 bgColor='#66666661'
-                color='#fff' />
+                color='#fff'
+            />
 
-            <div
+            <main
                 className='quiz'
                 style={{ backgroundImage: 'url("/images/quiz-background.jpg")' }}>
-                {(quizActive) ?
-                    <div className='question'>
-                        <div>
-                            <h1>{quizName}</h1>
-                            <p> Час на виконання кожного завдання - {timeOut} секунд</p>
-                            <p>Використання підказки зменшує кількість балів за питання на 50%</p>
-                        </div>
-                        <div className='question-bubbles'>
-                            {
-                                questions.map((question, index) => {
-                                    return <span key={index} className={(currentQuestion === index) ? 'active' : ''}>
-                                        {index + 1}
-                                    </span>
-                                })
-                            }
-                        </div>
-                        <div className='question-info'>
-                            <h2>
-                                Питання {questions[currentQuestion].number} з {questions.length}
-                            </h2>
-                            <h4>
-                                Балів за питання: {questions[currentQuestion].weight}
-                            </h4>
-                            <p className='question-text'>
-                                {questions[currentQuestion].text}
-                            </p>
-                            <div className='tip'>
-                                <button
-                                    onClick={() => setTipUsed(true)}
-                                    style={(tipUsed) ? { display: 'none' } : {}}>
-                                    Використати підказку
-                                </button>
-                                {
-                                    (tipUsed) ?
-                                        <div>
-                                            <h6>Підказка:</h6>
-                                            <p>
-                                                {questions[currentQuestion].tip}
-                                            </p>
-                                        </div>
-                                        : null
-                                }
-                            </div>
-                            <div className='countdown'>
-                                <div className='countdown-number'>{time}</div>
-                                <svg>
-                                    <circle style={{ strokeDashoffset: circ + 'px' }} r="24" cx="25" cy="25"></circle>
-                                </svg>
-                            </div>
-                        </div>
-                        <div className='answers'>
-                            {questions[currentQuestion].answers.map((answer, index) => {
-                                return (
-                                    <button key={index} data-index={index} onClick={() => saveAnswer(index)}>{answer}</button>
-                                )
-                            })}
-                        </div>
-                        <div className='quiz-end'>
-                            <button onClick={() => {
-                                setQuizActive(false)
-                            }}>
-                                Завершити квіз
-                            </button>
-                        </div>
-                    </div>
-                    : (quizStarted) ?
-                        <div className='quiz-results'>
-                            <h2>
-                                Ваш результат
-                                <span>
-                                    {score}
-                                </span>
-                                <span>
-                                    з {totalScore} балів
-                                </span>
-                            </h2>
-                            <h3>
-                                Правильних відповідей: {rightAnswers} з {questions.length}
-                            </h3>
-                            <div className='results-control'>
-                                <button onClick={() => {
-                                    setTipUsed(false);
-                                    setScore(0);
-                                    setRightAnswers(0);
-                                    setCurrentQuestion(0);
-                                    setQuizActive(true);
-                                }}>
-                                    Почати квіз заново
-                                </button>
-                                <button onClick={() => {
-                                    setTipUsed(false);
-                                    setScore(0);
-                                    setRightAnswers(0);
-                                    setCurrentQuestion(null);
-                                    setQuizStarted(false);
-                                    setQuizActive(false);
-
-                                }}>
-                                    До списку квізів
-                                </button>
-                            </div>
-                        </div>
-                        :
-                        <div className='quiz-menu'>
-                            <h1>Список квізів</h1>
-                            <div>
-                                <h2>Квіз #1</h2>
-                                <p>5 питань, 20 секунд на питання</p>
-                                <button
-                                    onClick={() => {
-                                        setQuizName('Квіз #1')
-                                        setTimeOut(20);
-                                        setQuestions(getQuestions(5));
-                                        setCurrentQuestion(0);
-                                        setQuizStarted(true);
-                                        setQuizActive(true);
-                                    }}>
-                                    Почати квіз
-                                </button>
-                            </div>
-                            <div>
-                                <h2>Квіз #2</h2>
-                                <p>7 питань, 10 секунд на питання</p>
-                                <button
-                                    onClick={() => {
-                                        setQuizName('Квіз #2')
-                                        setTimeOut(10);
-                                        setQuestions(getQuestions(7));
-                                        setCurrentQuestion(0);
-                                        setQuizStarted(true);
-                                        setQuizActive(true);
-                                    }}>
-                                    Почати квіз
-                                </button>
-                            </div>
-                        </div>
+                {quizActive
+                    ? loading
+                        ? <div className='spinner'></div>
+                        : <Quiz
+                            quizName={quizName}
+                            timeOut={timeOut}
+                            questions={questions}
+                            currentQuestion={currentQuestion}
+                            tipHandler={tipHandler}
+                            tipUsed={tipUsed}
+                            time={time}
+                            saveAnswer={saveAnswer}
+                            endQuiz={endQuiz}
+                        />
+                    : quizStarted
+                        ? <QuizResults
+                            score={score}
+                            totalScore={totalScore}
+                            rightAnswers={rightAnswers}
+                            length={questions.length}
+                            startAgain={startAgain}
+                            toQuizList={toQuizList}
+                        />
+                        : <QuizList startQuiz={startQuiz} />
                 }
-            </div>
+            </main>
         </>
     )
 }
