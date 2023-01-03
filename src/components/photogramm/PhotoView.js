@@ -1,22 +1,14 @@
-import React, {useState} from 'react';
+import React from 'react';
 
 export default function PhotoView({ image, hideImage }) {
-    const [loaded, setLoaded] = useState(false);
-
     return (
         <div className='photo-view-container'>
             <div className='photo-view'>
                 <div>
                     <img
-                        style={loaded ? null : { display: 'none' }}
                         src={'./images/photogramm/' + image.src}
                         alt={image.name}
-                        onLoad={() => setLoaded(true)}
                     />
-                    <div 
-                        className='spinner'
-                        style={loaded ? { display: 'none' } : null}>
-                    </div>
                 </div>
                 <div>
                     <h2>

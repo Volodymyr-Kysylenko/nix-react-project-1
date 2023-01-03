@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 
-export default function Quiz({quizName, timeOut, questions, currentQuestion, tipHandler, tipUsed, time, saveAnswer, endQuiz}) {
+export default function Quiz({quizName, questions, currentQuestion, timer, timeOut, tipHandler, tipUsed, saveAnswer, endQuiz}) {
     const [countdownStroke, setCountdownStroke] = useState(0);
 
     useEffect(() => {
@@ -62,7 +62,7 @@ export default function Quiz({quizName, timeOut, questions, currentQuestion, tip
                 </div>
                 <div className='countdown'>
                     <div className='countdown-number'>
-                        {time}
+                        {timer}
                     </div>
                     <svg>
                         <circle style={{ strokeDashoffset: countdownStroke + 'px' }} r="24" cx="25" cy="25"></circle>

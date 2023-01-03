@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 
+import Spinner from './Spinner';
+
 export default function PhotoCard({ image, showImage, index, addToFavorite, favoriteImages }) {
     const [loaded, setLoaded] = useState(false);
 
@@ -10,15 +12,15 @@ export default function PhotoCard({ image, showImage, index, addToFavorite, favo
             onClick={(e) => showImage(e, image)}>
             <div className='photocard-image'>
                 <img
-                    style={loaded ? {} : { display: 'none' }}
+                    style={loaded ? null : { display: 'none' }}
                     src={'/images/photogramm/' + image.src}
                     alt={image.name}
                     onLoad={() => setLoaded(true)}
                 />
-                <div
-                    className='spinner'
-                    style={loaded ? { display: 'none' } : {}}>
-                </div>
+                
+                <Spinner
+                    style={loaded ? { display: 'none' } : null}
+                />
             </div>
             <div className='photocard-info'>
                 <h5>

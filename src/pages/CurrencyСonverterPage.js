@@ -11,6 +11,7 @@ export default function CurrencyConverterPage() {
     const frequentValues = [1, 2, 3, 4, 5, 10, 20, 50, 75, 100];
 
     const [loading, setLoading] = useState(true);
+    const [performanceMode, setPerformanceMode] = useState(false);
 
     const [exchangeRate, setExchangeRate] = useState({});
 
@@ -22,7 +23,7 @@ export default function CurrencyConverterPage() {
 
     const [fromSelect, setFromSelect] = useState('none');
     const [toSelect, setToSelect] = useState('none');
-    
+
     useEffect(() => {
         fetch('https://nix-project.herokuapp.com/api/exchange-rate')
             .then(res => res.json())
@@ -32,7 +33,7 @@ export default function CurrencyConverterPage() {
             })
             .then(() => setLoading(false));
     }, []);
-    
+
     function fromValueHandler(e) {
         let fromValueString = e.target.value;
         let fromValueNumber = parseFloat(fromValueString);
@@ -53,7 +54,7 @@ export default function CurrencyConverterPage() {
         let toValueString = e.target.value;
         let toValueNumber = parseFloat(toValueString);
 
-        if (toValueString.split('.')[1]?.length > 2) toValueNumber = +toValueNumber.toFixed(2);
+        if (toValueString.split('.')[1]?.length > 2) return;
 
         if (isNaN(toValueNumber)) {
             setFromValue(0);
@@ -133,136 +134,137 @@ export default function CurrencyConverterPage() {
             />
 
             {loading
-            ? <div className='spinner converter-spinner'></div>
-            : <div
-                style={{ backgroundImage: 'url("/images/converter-background.jpg")' }}
-                className='converter'
-                onClick={hideCurrencySelector}>
-                <h1>
-                    Currency Converter
-                </h1>
-                <div className='converter-control-container'>
-                    <h2>
-                        {exchangeRate[fromCurrency].fullName} to {exchangeRate[toCurrency].fullName}
-                    </h2>
-                    <div>
-                        <div>
-                            <h3>
-                                From
-                            </h3>
-                            <div className='converter-control'>
-                                <CurrencyInput value={fromValue} handler={fromValueHandler} />
-                                <CopyValueButton value={fromValue} />
-                                <button className='converter-control-button' onClick={() => setFromSelect('block')}>
-                                    <img src={`/images/flags/${fromCurrency}.png`} alt={fromCurrency} />
-                                    {fromCurrency} - {exchangeRate[fromCurrency].fullName}
-                                </button>
-                                <div style={{ display: fromSelect }} className='control'>
-                                    <ChangeCurrencyButton 
-                                        currency='USD' changeCurrency={changeFromCurrency} exchangeRate={exchangeRate} 
-                                    />
-                                    <ChangeCurrencyButton 
-                                        currency='EUR' changeCurrency={changeFromCurrency} exchangeRate={exchangeRate} 
-                                    />
-                                    <ChangeCurrencyButton 
-                                        currency='UAH' changeCurrency={changeFromCurrency} exchangeRate={exchangeRate} 
-                                    />
-                                </div>
-                            </div>
-                        </div>
+                ? <div className='converter-spinner'></div>
+                : <div
+                    style={{ backgroundImage: 'url("/images/converter-background.jpg")' }}
+                    className='converter'
+                    onClick={hideCurrencySelector}>
+                    <h1>
+                        Currency Converter
+                    </h1>
+                    <div className={`converter-control-container ${performanceMode ? '' : 'converter-blur'}`}>
+                        <h2>
+                            {exchangeRate[fromCurrency].fullName} to {exchangeRate[toCurrency].fullName}
+                        </h2>
                         <div>
                             <div>
-                                <button className='switch' onClick={changeCurrency}>
-                                    <img src='/images/icons/switch.svg' alt='Switch icon' />
-                                </button>
+                                <h3>
+                                    From
+                                </h3>
+                                <div className='converter-control'>
+                                    <CurrencyInput value={fromValue} handler={fromValueHandler} />
+                                    <CopyValueButton value={fromValue} />
+                                    <button className='converter-control-button' onClick={() => setFromSelect('block')}>
+                                        <img src={`/images/flags/${fromCurrency}.png`} alt={fromCurrency} />
+                                        {fromCurrency} - {exchangeRate[fromCurrency].fullName}
+                                    </button>
+                                    <div style={{ display: fromSelect }} className='currency-selector'>
+                                        <ChangeCurrencyButton
+                                            currency='USD' changeCurrency={changeFromCurrency} exchangeRate={exchangeRate}
+                                        />
+                                        <ChangeCurrencyButton
+                                            currency='EUR' changeCurrency={changeFromCurrency} exchangeRate={exchangeRate}
+                                        />
+                                        <ChangeCurrencyButton
+                                            currency='UAH' changeCurrency={changeFromCurrency} exchangeRate={exchangeRate}
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div>
-                            <h3>
-                                To
-                            </h3>
-                            <div className='converter-control'>
-                                <CurrencyInput value={toValue} handler={toValueHandler} />
-                                <CopyValueButton value={toValue} />
-                                <button className='converter-control-button' onClick={() => setToSelect('block')}>
-                                    <img src={`/images/flags/${toCurrency}.png`} alt={toCurrency} />
-                                    {toCurrency} - {exchangeRate[toCurrency].fullName}
-                                </button>
-                                <div style={{ display: toSelect }} className='control'>
-                                    <ChangeCurrencyButton 
-                                        currency='USD' changeCurrency={changeToCurrency} exchangeRate={exchangeRate} 
-                                    />
-                                    <ChangeCurrencyButton 
-                                        currency='EUR' changeCurrency={changeToCurrency} exchangeRate={exchangeRate} 
-                                    />
-                                    <ChangeCurrencyButton 
-                                        currency='UAH' changeCurrency={changeToCurrency} exchangeRate={exchangeRate} 
-                                    />
+                            <div className='currency-switch-container'>
+                                <div>
+                                    <button className='currency-switch' onClick={changeCurrency}>
+                                        <img src='/images/icons/switch.svg' alt='Switch icon' />
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <h3>
+                                    To
+                                </h3>
+                                <div className='converter-control'>
+                                    <CurrencyInput value={toValue} handler={toValueHandler} />
+                                    <CopyValueButton value={toValue} />
+                                    <button className='converter-control-button' onClick={() => setToSelect('block')}>
+                                        <img src={`/images/flags/${toCurrency}.png`} alt={toCurrency} />
+                                        {toCurrency} - {exchangeRate[toCurrency].fullName}
+                                    </button>
+                                    <div style={{ display: toSelect }} className='currency-selector'>
+                                        <ChangeCurrencyButton
+                                            currency='USD' changeCurrency={changeToCurrency} exchangeRate={exchangeRate}
+                                        />
+                                        <ChangeCurrencyButton
+                                            currency='EUR' changeCurrency={changeToCurrency} exchangeRate={exchangeRate}
+                                        />
+                                        <ChangeCurrencyButton
+                                            currency='UAH' changeCurrency={changeToCurrency} exchangeRate={exchangeRate}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <h2>
-                        {fromValue || 0} <span>{fromCurrency}</span> = {toValue || 0} <span>{toCurrency}</span>
-                    </h2>
-                </div>
-                <div>
-                    <div className='currency-chart'>
-                        <div>
-                            <Chart
-                                period='Days'
-                                from={exchangeRate[fromCurrency][toCurrency]}
-                                fromCurrency={fromCurrency}
-                                toCurrency={toCurrency}
-                            />
-                        </div>
-                        <div>
-                            <Chart
-                                period='Months'
-                                from={exchangeRate[fromCurrency][toCurrency]}
-                                fromCurrency={fromCurrency}
-                                toCurrency={toCurrency}
-                            />
-                        </div>
-                    </div>
-                </div>
-                <div className='frequent-values'>
-                    <div>
-                        <h3>
-                            Convert {exchangeRate[fromCurrency].fullName} to {exchangeRate[toCurrency].fullName}
-                        </h3>
-                        {frequentValues.map((value) => {
-                            return (    
-                                <FrequentValues 
-                                    key={fromCurrency + value}
-                                    value = {value} 
-                                    toCurrency = {fromCurrency}
-                                    fromCurrency = {toCurrency}
-                                    setQuickValue = {setQuickFromValue}
-                                    exchangeRate = {exchangeRate}    
-                                />
-                            )
-                        })}
+                        <h2>
+                            {fromValue || 0} <span>{fromCurrency}</span> = {toValue || 0} <span>{toCurrency}</span>
+                        </h2>
                     </div>
                     <div>
-                        <h3>
-                            Convert {exchangeRate[toCurrency].fullName} to {exchangeRate[fromCurrency].fullName}
-                        </h3>
-                        {frequentValues.map((value) => {
-                            return (    
-                                <FrequentValues 
-                                    key={toCurrency + value}
-                                    value = {value} 
-                                    toCurrency = {toCurrency}
-                                    fromCurrency = {fromCurrency}
-                                    setQuickValue = {setQuickToValue}
-                                    exchangeRate = {exchangeRate}    
+                        <div className={`currency-chart ${performanceMode ? '' : 'converter-blur'}`}>
+                            <div>
+                                <Chart
+                                    period='Days'
+                                    from={exchangeRate[fromCurrency][toCurrency]}
+                                    fromCurrency={fromCurrency}
+                                    toCurrency={toCurrency}
                                 />
-                            )
-                        })}
+                            </div>
+                            <div>
+                                <Chart
+                                    period='Months'
+                                    from={exchangeRate[fromCurrency][toCurrency]}
+                                    fromCurrency={fromCurrency}
+                                    toCurrency={toCurrency}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div className={`frequent-values ${performanceMode ? '' : 'converter-blur'}`}>
+                        <div>
+                            <h3>
+                                Convert {exchangeRate[fromCurrency].fullName} to {exchangeRate[toCurrency].fullName}
+                            </h3>
+                            {frequentValues.map((value) => {
+                                return (
+                                    <FrequentValues
+                                        key={fromCurrency + value}
+                                        value={value}
+                                        toCurrency={fromCurrency}
+                                        fromCurrency={toCurrency}
+                                        setQuickValue={setQuickFromValue}
+                                        exchangeRate={exchangeRate}
+                                    />
+                                )
+                            })}
+                        </div>
+                        <div>
+                            <h3>
+                                Convert {exchangeRate[toCurrency].fullName} to {exchangeRate[fromCurrency].fullName}
+                            </h3>
+                            {frequentValues.map((value) => {
+                                return (
+                                    <FrequentValues
+                                        key={toCurrency + value}
+                                        value={value}
+                                        toCurrency={toCurrency}
+                                        fromCurrency={fromCurrency}
+                                        setQuickValue={setQuickToValue}
+                                        exchangeRate={exchangeRate}
+                                    />
+                                )
+                            })}
+                        </div>
                     </div>
                 </div>
-            </div>}
+            }
         </>
     )
 }

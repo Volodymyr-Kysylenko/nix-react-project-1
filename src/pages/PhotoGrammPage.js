@@ -6,19 +6,25 @@ import PhotoCards from '../components/photogramm/PhotoCards';
 import PhotoView from '../components/photogramm/PhotoView';
 import SortingButton from '../components/photogramm/SortingButton';
 import PaginationButton from '../components/photogramm/PaginationButton';
+import Spinner from '../components/photogramm/Spinner';
+
 
 export default function PhotoGrammPage() {
     const imagesPerPage = 12;
 
-    const [images, setImages] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    const [images, setImages] = useState([]);
+   
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pages, setPages] = useState([1]);
+    const [pageAmount, setPageAmount] = useState(1);
+
     const [search, setSearch] = useState(false);
     const [filter, setFilter] = useState(false);
     const [sorting, setSorting] = useState('id');
-    const [page, setPage] = useState(1);
+    
     const [displayImage, setDisplayImage] = useState(false);
-    const [pages, setPages] = useState([1]);
-    const [pageAmount, setPageAmount] = useState(1);
 
     useEffect(() => {
         fetch('https://nix-project.herokuapp.com/api/images-count', {
@@ -26,40 +32,37 @@ export default function PhotoGrammPage() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({page: page, search: search, filter: filter})
+            body: JSON.stringify({ page: currentPage, search: search, filter: filter })
         })
             .then(res => res.json())
             .then(res => {
-                console.log(res.count);
                 setPageAmount(Math.ceil(res.count / imagesPerPage));
                 setPages(() => {
                     const pageArray = getPageAmount(res.count);
                     return (pageArray.length === 0) ? [1] : pageArray;
                 });
             });
-    }, [filter, search, page]);
+    }, [filter, search, currentPage]);
 
-    
+
     useEffect(() => {
         fetch('https://nix-project.herokuapp.com/api/images', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({page: page, search: search, filter: filter})
+            body: JSON.stringify({ page: currentPage, search: search, filter: filter })
         })
             .then(res => res.json())
             .then(photos => {
-                console.log(photos);
                 setImages(photos);
                 setLoading(false);
             })
-    }, [filter, search, page]);
+    }, [filter, search, currentPage]);
 
     useEffect(() => {
         document.querySelector('.photogramm').scrollTo(0, 0);
-    }, [page]);
-    
+    }, [currentPage]);
 
     function getPageAmount(length = images.length) {
         let amount = Math.ceil(length / imagesPerPage);
@@ -76,7 +79,7 @@ export default function PhotoGrammPage() {
     function showSearchResults(e) {
         let value = (e.target.value).toLowerCase();
         setSearch((value !== '') ? value : false);
-        setPage(1);
+        setCurrentPage(1);
         setPageAmount(pages[pages.length - 1]);
         setLoading(true);
     }
@@ -84,7 +87,7 @@ export default function PhotoGrammPage() {
     function clearSearch() {
         if (search) {
             setLoading(true);
-            setPage(1);
+            setCurrentPage(1);
             setSearch(false);
             document.querySelector('.search-input input').value = '';
         }
@@ -92,7 +95,7 @@ export default function PhotoGrammPage() {
 
     function showFilteringResults(filter) {
         setLoading(true);
-        setPage(1);
+        setCurrentPage(1);
         setFilter(filter);
     }
 
@@ -101,8 +104,6 @@ export default function PhotoGrammPage() {
     }
 
     function showImage(e, image) {
-        console.log(e.target);
-        console.log(e.currentTarget);
         if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'svg' && e.target.tagName !== 'path') {
             setDisplayImage(image);
         }
@@ -118,8 +119,7 @@ export default function PhotoGrammPage() {
 
     function changeCurrentPage(newPageNumber) {
         setLoading(true);
-        // document.querySelector('.photogramm').scrollTo(0, 0); 
-        setPage(newPageNumber);
+        setCurrentPage(newPageNumber);
     }
 
     return (
@@ -127,7 +127,7 @@ export default function PhotoGrammPage() {
             <Header
                 title='PhotoGramm'
                 bgColor='#fff'
-                color='#000'    
+                color='#000'
             />
 
             <main className='photogramm'>
@@ -146,7 +146,7 @@ export default function PhotoGrammPage() {
                             onFocus={changeHeaderHeight}
                         />
                         <button onClick={clearSearch}>
-                            <img src='/images/icons/close.svg' alt='Clear input icon'/>
+                            <img src='/images/icons/close.svg' alt='Clear input icon' />
                         </button>
                     </div>
                     <div className='categories'>
@@ -166,23 +166,26 @@ export default function PhotoGrammPage() {
                         <SortingButton value={'author'} sorting={sorting} showSortingResult={showSortingResult} />
                     </div>
                     <div>
-                        Page {page} of {pageAmount}
+                        Page {currentPage} of {pageAmount || 1}
                     </div>
                 </div>
+
                 <div className='photocards'>
-                {loading 
-                    ? <div className='spinner photogramm-spinner'></div>
-                    : <PhotoCards
-                        images={images}
-                        sorting={sorting}
-                        showImage={showImage}
-                    />
-                }
+                    {loading
+                        ? <div class='photogramm-spinner-container'>
+                            <Spinner />
+                        </div>
+                        : <PhotoCards
+                            images={images}
+                            sorting={sorting}
+                            showImage={showImage}
+                        />
+                    }
                 </div>
                 <div className='pagination'>
                     <button
-                        onClick={() => {changeCurrentPage(page - 1)}}
-                        disabled={(page === 1) ? true : false}>
+                        onClick={() => { changeCurrentPage(currentPage - 1) }}
+                        disabled={(currentPage === 1) ? true : false}>
                         <img
                             style={{ transform: 'rotateZ(90deg)' }}
                             src='/images/icons/down.svg'
@@ -190,23 +193,28 @@ export default function PhotoGrammPage() {
                         />
                     </button>
                     {pages.map(pageNumber => {
-                        return ( 
-                            <PaginationButton key={pageNumber} page={page} pageNumber={pageNumber} changeCurrentPage={changeCurrentPage} />
+                        return (
+                            <PaginationButton 
+                                key={pageNumber} 
+                                page={currentPage} 
+                                pageNumber={pageNumber} 
+                                changeCurrentPage={changeCurrentPage}    
+                            />
                         )
                     })}
                     <button
-                        onClick={() => {changeCurrentPage(page + 1)}}
-                        disabled={(page === pageAmount) ? true : false}>
+                        onClick={() => { changeCurrentPage(currentPage + 1) }}
+                        disabled={(currentPage === pageAmount || pageAmount === 0) ? true : false}>
                         <img
                             style={{ transform: 'rotateZ(-90deg)' }}
                             src='/images/icons/down.svg'
-                            alt='Arrow icon' 
+                            alt='Arrow icon'
                         />
                     </button>
                 </div>
-                {
-                    (displayImage) ? 
-                    <PhotoView image={displayImage} hideImage={hideImage} /> 
+
+                {displayImage
+                    ? <PhotoView image={displayImage} hideImage={hideImage} />
                     : null
                 }
             </main>

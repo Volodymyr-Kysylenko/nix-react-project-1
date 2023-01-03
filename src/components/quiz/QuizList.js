@@ -14,13 +14,13 @@ export default function QuizList({ startQuiz }) {
     return (
         <>
             {loading
-                ? <div className='spinner'></div>
-                : <div className='quiz-menu'>
+                ? <div className='quiz-spinner'><div></div></div>
+                : <div className='quiz-list'>
                     <h1>Список квізів</h1>
                     {
-                        quizList.map(item => {
+                        quizList.map((item, index) => {
                             return (
-                                <div>
+                                <div key={index} className='quiz-list-item'>
                                     <h2>{item.name}</h2>
                                     <p>{item.questionsamount} питань, {item.timer} секунд на питання</p>
                                     <button

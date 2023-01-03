@@ -6,29 +6,29 @@ import Quiz from '../components/quiz/Quiz';
 import QuizResults from '../components/quiz/QuizResults';
 
 export default function QuizPage() {
-    const [loading, setLoading] = useState(true);
-    const [questions, setQuestions] = useState([]);
-    const [totalScore, setTotalScore] = useState(0);
+    const [loading, setLoading] = useState(false);
 
     const [quizActive, setQuizActive] = useState(false);
     const [quizStarted, setQuizStarted] = useState(false);
-    const [quizName, setQuizName] = useState('Quiz');
 
-    
+    const [questions, setQuestions] = useState([]);
+    const [quizName, setQuizName] = useState('');
     const [currentQuestion, setCurrentQuestion] = useState(null);
     
     const [score, setScore] = useState(0);
+    const [totalScore, setTotalScore] = useState(0);
     const [rightAnswers, setRightAnswers] = useState(0);
-    const [time, setTime] = useState('');
-    const [timeOut, setTimeOut] = useState(20);
     const [tipUsed, setTipUsed] = useState(false);
+
+    const [timer, setTimer] = useState('');
+    const [timeOut, setTimeOut] = useState(20);
 
     useEffect(() => {
         if (currentQuestion !== null) {
             let timerCounter = timeOut;
-            setTime(timerCounter);
+            setTimer(timerCounter);
             const timerInterval = setInterval(() => {
-                setTime(--timerCounter);
+                setTimer(--timerCounter);
             }, 1000);
             const timer = setTimeout(() => saveAnswer(), timeOut * 1000);
 
@@ -39,7 +39,28 @@ export default function QuizPage() {
         }
     }, [currentQuestion]);
 
-    
+    function startQuiz(id) {
+        setLoading(true);
+        setQuizActive(true);
+        fetch('https://nix-project.herokuapp.com/api/quiz', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({id: id})
+        })
+            .then(res => res.json())
+            .then(res => {
+                setQuizName(res.name);
+                setQuestions(res.questions);
+                setTimeOut(res.timer);
+                setTotalScore(res.questions.reduce((partialTotalScore, question) => partialTotalScore + question.weight, 0));
+            }).then(() => {
+                setCurrentQuestion(0);
+                setQuizStarted(true);
+                setLoading(false);
+            });
+    }
 
     function saveAnswer(index = false) {
         const answer = index;
@@ -65,19 +86,16 @@ export default function QuizPage() {
     }
 
     function endQuiz() {
-        setLoading(true);
         setQuizActive(false);
     }
 
     function startAgain() {
-        setLoading(false);
         clearQuizProgress();
         setCurrentQuestion(0);
         setQuizActive(true);
     }
 
     function toQuizList() {
-        setLoading(true);
         clearQuizProgress();
         setCurrentQuestion(null);
         setQuizStarted(false);
@@ -88,28 +106,6 @@ export default function QuizPage() {
         setTipUsed(false);
         setScore(0);
         setRightAnswers(0);
-    }
-
-    function startQuiz(id) {
-        fetch('https://nix-project.herokuapp.com/api/quiz', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({id: id})
-        })
-            .then(res => res.json())
-            .then(res => {
-                setQuizName(res.name);
-                setQuestions(res.questions);
-                setTimeOut(res.timer);
-                setTotalScore(res.questions.reduce((partialTotalScore, question) => partialTotalScore + question.weight, 0));
-            }).then(() => {
-                setCurrentQuestion(0);
-                setQuizStarted(true);
-                setQuizActive(true);
-                setLoading(false);
-            });
     }
 
     return (
@@ -125,15 +121,15 @@ export default function QuizPage() {
                 style={{ backgroundImage: 'url("/images/quiz-background.jpg")' }}>
                 {quizActive
                     ? loading
-                        ? <div className='spinner'></div>
+                        ? <div className='quiz-spinner'><div></div></div>
                         : <Quiz
                             quizName={quizName}
-                            timeOut={timeOut}
                             questions={questions}
                             currentQuestion={currentQuestion}
+                            timer={timer}
+                            timeOut={timeOut}
                             tipHandler={tipHandler}
                             tipUsed={tipUsed}
-                            time={time}
                             saveAnswer={saveAnswer}
                             endQuiz={endQuiz}
                         />
@@ -141,8 +137,8 @@ export default function QuizPage() {
                         ? <QuizResults
                             score={score}
                             totalScore={totalScore}
+                            answers={questions.length}
                             rightAnswers={rightAnswers}
-                            length={questions.length}
                             startAgain={startAgain}
                             toQuizList={toQuizList}
                         />
