@@ -5,14 +5,13 @@ export default function Quiz({quizName, questions, currentQuestion, timer, timeO
 
     useEffect(() => {
         let timerBorder = 0;
-        setCountdownStroke(timerBorder);
         const timerInterval = setInterval(() => {
             timerBorder += 151 / timeOut / 10;
             setCountdownStroke(timerBorder);
         }, 100);
 
         return () => clearInterval(timerInterval);
-    }, [currentQuestion])
+    }, [currentQuestion, timeOut]); 
 
     return (
         <div className='question'>
@@ -30,9 +29,11 @@ export default function Quiz({quizName, questions, currentQuestion, timer, timeO
             <div className='question-bubbles'>
                 {
                     questions.map((question, index) => {
-                        return <span key={index} className={(currentQuestion === index) ? 'active' : ''}>
-                            {index + 1}
-                        </span>
+                        return( 
+                            <span key={index} className={(currentQuestion === index) ? 'active' : ''}>
+                                {index + 1}
+                            </span>
+                        )
                     })
                 }
             </div>
@@ -70,9 +71,9 @@ export default function Quiz({quizName, questions, currentQuestion, timer, timeO
                 </div>
             </div>
             <div className='answers'>
-                {questions[currentQuestion].answers.map((answer, index) => {
+                {questions[currentQuestion].answers.map((answer, answerIndex) => {
                     return (
-                        <button key={index} data-index={index} onClick={() => saveAnswer(index)}>{answer}</button>
+                        <button key={answerIndex} onClick={() => saveAnswer(answerIndex)}>{answer}</button>
                     )
                 })}
             </div>

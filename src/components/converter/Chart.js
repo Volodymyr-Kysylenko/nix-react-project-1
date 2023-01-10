@@ -82,7 +82,7 @@ export default function Chart({ period, from, fromCurrency, toCurrency }) {
                 }
             ],
         })
-    }, [from]);
+    }, [from, fromCurrency, toCurrency, period]);
 
     return <Line options={options} data={data} />;
 }

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet';
+
 
 export default function NotFound() {
     const [percentage, setPercentage] = useState(0);
@@ -17,19 +19,25 @@ export default function NotFound() {
     }, []);
 
     return (
-        <main className='not-found'>
-            <div>
-                <h1>
-                    404
-                </h1>
-                <h2>
-                    We will collect the necessary data and forward you to the home page.
-                </h2>
-                <h2>
-                    {percentage}% complete
-                </h2>
-            </div>
-        </main>
+        <>
+            <Helmet>
+                <title>404 page</title>
+            </Helmet>
+
+            <main className='not-found'>
+                <div>
+                    <h1>
+                        404
+                    </h1>
+                    <h2>
+                        We will collect the necessary data and forward you to the home page.
+                    </h2>
+                    <h2>
+                        {percentage}% complete
+                    </h2>
+                </div>
+            </main>
+        </>
     )
 }
 

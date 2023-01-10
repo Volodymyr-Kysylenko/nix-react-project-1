@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet';
+
 
 import Header from '../components/Header';
 import QuizList from '../components/quiz/QuizList';
@@ -17,10 +19,10 @@ export default function QuizPage() {
     
     const [score, setScore] = useState(0);
     const [totalScore, setTotalScore] = useState(0);
-    const [rightAnswers, setRightAnswers] = useState(0);
+    const [rightAnswersAmount, setRightAnswersAmount] = useState(0);
     const [tipUsed, setTipUsed] = useState(false);
 
-    const [timer, setTimer] = useState('');
+    const [timer, setTimer] = useState(0);
     const [timeOut, setTimeOut] = useState(20);
 
     useEffect(() => {
@@ -30,11 +32,11 @@ export default function QuizPage() {
             const timerInterval = setInterval(() => {
                 setTimer(--timerCounter);
             }, 1000);
-            const timer = setTimeout(() => saveAnswer(), timeOut * 1000);
+            const timerTimeout = setTimeout(() => saveAnswer(), timeOut * 1000);
 
             return () => {
-                clearTimeout(timer);
                 clearInterval(timerInterval);
+                clearTimeout(timerTimeout);
             };
         }
     }, [currentQuestion]);
@@ -59,18 +61,17 @@ export default function QuizPage() {
                 setCurrentQuestion(0);
                 setQuizStarted(true);
                 setLoading(false);
-            });
+            }).catch(() => console.error('Data request failed'));
     }
 
-    function saveAnswer(index = false) {
-        const answer = index;
-        if (answer === questions[currentQuestion].correct) {
+    function saveAnswer(answerIndex = false) {
+        if (answerIndex === questions[currentQuestion].correct) {
             if (tipUsed) {
-                setScore(score + questions[currentQuestion].weight * 0.5);
+                setScore(prevScore => prevScore + questions[currentQuestion].weight * 0.5);
             } else {
-                setScore(score + questions[currentQuestion].weight);
+                setScore(prevScore => prevScore + questions[currentQuestion].weight);
             }
-            setRightAnswers(rightAnswers + 1);
+            setRightAnswersAmount(prevRightAnswersAmount => prevRightAnswersAmount + 1);
         }
 
         if (currentQuestion + 1 === questions.length) {
@@ -87,6 +88,7 @@ export default function QuizPage() {
 
     function endQuiz() {
         setQuizActive(false);
+        setCurrentQuestion(null); 
     }
 
     function startAgain() {
@@ -105,11 +107,15 @@ export default function QuizPage() {
     function clearQuizProgress() {
         setTipUsed(false);
         setScore(0);
-        setRightAnswers(0);
+        setRightAnswersAmount(0);
     }
 
     return (
         <>
+            <Helmet>
+                <title>Quiz page</title>
+            </Helmet>
+
             <Header
                 title='Bubble Quiz'
                 bgColor='#66666661'
@@ -138,7 +144,7 @@ export default function QuizPage() {
                             score={score}
                             totalScore={totalScore}
                             answers={questions.length}
-                            rightAnswers={rightAnswers}
+                            rightAnswersAmount={rightAnswersAmount}
                             startAgain={startAgain}
                             toQuizList={toQuizList}
                         />

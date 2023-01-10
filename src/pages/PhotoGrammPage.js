@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet';
 
 import Header from '../components/Header';
 import CategoryButton from '../components/photogramm/CategoryButton';
@@ -41,8 +42,8 @@ export default function PhotoGrammPage() {
                     const pageArray = getPageAmount(res.count);
                     return (pageArray.length === 0) ? [1] : pageArray;
                 });
-            });
-    }, [filter, search, currentPage]);
+            }).catch(() => console.error('Data request failed'));
+    }, [filter, search, currentPage, getPageAmount]);
 
 
     useEffect(() => {
@@ -103,10 +104,8 @@ export default function PhotoGrammPage() {
         setSorting(sorting);
     }
 
-    function showImage(e, image) {
-        if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'svg' && e.target.tagName !== 'path') {
-            setDisplayImage(image);
-        }
+    function showImage(image) {
+        setDisplayImage(image);
     }
 
     function hideImage() {
@@ -122,8 +121,17 @@ export default function PhotoGrammPage() {
         setCurrentPage(newPageNumber);
     }
 
+    function prohibitInput(e) {
+        const checkKeyRegExp = /^[a-z0-9\s]+$/i;
+        (checkKeyRegExp.test(e.key)) || e.preventDefault();
+    }
+
     return (
         <>
+            <Helmet>
+                <title>PhotoGramm page</title>
+            </Helmet>
+
             <Header
                 title='PhotoGramm'
                 bgColor='#fff'
@@ -144,6 +152,7 @@ export default function PhotoGrammPage() {
                             type='text'
                             onChange={showSearchResults}
                             onFocus={changeHeaderHeight}
+                            onKeyDown={prohibitInput}
                         />
                         <button onClick={clearSearch}>
                             <img src='/images/icons/close.svg' alt='Clear input icon' />
@@ -172,8 +181,8 @@ export default function PhotoGrammPage() {
 
                 <div className='photocards'>
                     {loading
-                        ? <div class='photogramm-spinner-container'>
-                            <Spinner />
+                        ? <div className='photogramm-spinner-container'>
+                            <Spinner loading={loading} />
                         </div>
                         : <PhotoCards
                             images={images}

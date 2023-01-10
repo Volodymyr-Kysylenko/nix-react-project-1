@@ -3,24 +3,25 @@ import React, { useState } from 'react';
 import Spinner from './Spinner';
 
 export default function PhotoCard({ image, showImage, index, addToFavorite, favoriteImages }) {
-    const [loaded, setLoaded] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    function loadingHandler() {
+        setLoading(false); 
+    }
 
     return (
         <div
             className='photocard'
             key={index}
-            onClick={(e) => showImage(e, image)}>
+            onClick={() => showImage(image)}>
             <div className='photocard-image'>
                 <img
-                    style={loaded ? null : { display: 'none' }}
+                    style={loading ? { display: 'none' } : null}
                     src={'/images/photogramm/' + image.src}
                     alt={image.name}
-                    onLoad={() => setLoaded(true)}
+                    onLoad={loadingHandler}
                 />
-                
-                <Spinner
-                    style={loaded ? { display: 'none' } : null}
-                />
+                <Spinner loading={loading}/>
             </div>
             <div className='photocard-info'>
                 <h5>
@@ -44,7 +45,7 @@ export default function PhotoCard({ image, showImage, index, addToFavorite, favo
                     }
                 </div>
                 <div className='favorite-button'>
-                    <button onClick={(e) => { e.preventDefault(); addToFavorite(image.id) }}>
+                    <button onClick={(e) => { e.stopPropagation(); addToFavorite(image.id) }}>
                         <svg
                             width='22'
                             height='21'

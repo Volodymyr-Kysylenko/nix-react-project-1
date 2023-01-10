@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function QuizResults({score, totalScore, answers, rightAnswers, startAgain, toQuizList}) {
+export default function QuizResults({score, totalScore, answers, rightAnswersAmount, startAgain, toQuizList}) {
     return (
         <div className='quiz-results'>
             <h2>
@@ -13,7 +13,7 @@ export default function QuizResults({score, totalScore, answers, rightAnswers, s
                 </span>
             </h2>
             <h3>
-                Правильних відповідей: {rightAnswers} з {answers}
+                Правильних відповідей: {rightAnswersAmount} з {answers}
             </h3>
             <div className='results-control'>
                 <button onClick={startAgain}>

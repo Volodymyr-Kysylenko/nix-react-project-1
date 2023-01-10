@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet';
 
 import Header from '../components/Header';
 import CurrencyInput from '../components/converter/CurrencyInput';
@@ -9,16 +10,16 @@ import FrequentValues from '../components/converter/FrequentValues';
 
 export default function CurrencyConverterPage() {
     const frequentValues = [1, 2, 3, 4, 5, 10, 20, 50, 75, 100];
+    const performanceMode = false;
 
     const [loading, setLoading] = useState(true);
-    const [performanceMode, setPerformanceMode] = useState(false);
 
     const [exchangeRate, setExchangeRate] = useState({});
 
     const [fromCurrency, setFromCurrency] = useState('USD');
     const [toCurrency, setToCurrency] = useState('UAH');
 
-    const [fromValue, setFromValue] = useState(1);
+    const [fromValue, setFromValue] = useState('1');
     const [toValue, setToValue] = useState('');
 
     const [fromSelect, setFromSelect] = useState('none');
@@ -34,11 +35,9 @@ export default function CurrencyConverterPage() {
             .then(() => setLoading(false));
     }, []);
 
-    function fromValueHandler(e) {
-        let fromValueString = e.target.value;
+    function fromValueHandler(e, value) {
+        let fromValueString = e ? e.target.value : value;
         let fromValueNumber = parseFloat(fromValueString);
-
-        if (fromValueString.split('.')[1]?.length > 2) return;
 
         if (isNaN(fromValueNumber)) {
             setToValue(0);
@@ -46,24 +45,28 @@ export default function CurrencyConverterPage() {
             return;
         }
 
-        setFromValue((fromValueNumber < 0) ? 0 : fromValueNumber);
-        setToValue(parseFloat(((fromValueNumber < 0) ? 0 : fromValueNumber * exchangeRate[fromCurrency][toCurrency]).toFixed(2)));
+        if (fromValueString.split('.')[0].length > 12) return;
+        if (fromValueString.split('.')[1]?.length > 2) return;
+       
+        setFromValue(String((fromValueNumber < 0) ? 0 : fromValueString));
+        setToValue(String(((fromValueNumber < 0) ? 0 : fromValueNumber * exchangeRate[fromCurrency][toCurrency]).toFixed(2)));
     }
 
-    function toValueHandler(e) {
-        let toValueString = e.target.value;
+    function toValueHandler(e, value) {
+        let toValueString = e ? e.target.value : value;
         let toValueNumber = parseFloat(toValueString);
-
-        if (toValueString.split('.')[1]?.length > 2) return;
 
         if (isNaN(toValueNumber)) {
             setFromValue(0);
             setToValue('');
             return;
         }
+        
+        if (toValueString.split('.')[0].length > 12) return;
+        if (toValueString.split('.')[1]?.length > 2) return;
 
-        setToValue((toValueNumber < 0) ? 0 : toValueNumber);
-        setFromValue(parseFloat(((toValueNumber < 0) ? 0 : toValueNumber * exchangeRate[toCurrency][fromCurrency]).toFixed(2)));
+        setToValue(String((toValueNumber < 0) ? 0 : toValueString));
+        setFromValue(String(((toValueNumber < 0) ? 0 : toValueNumber * exchangeRate[toCurrency][fromCurrency]).toFixed(2)));
     }
 
     function changeCurrency(e, value = fromValue) {
@@ -104,8 +107,22 @@ export default function CurrencyConverterPage() {
         setToSelect('none');
     }
 
+    function showCurrencySelector(selector) {
+        if (selector === 'fromSelector') {
+            setFromSelect('block');
+            setToSelect('none');
+        } else {
+            setFromSelect('none');
+            setToSelect('block');
+        }
+    }
+
     function hideCurrencySelector(e) {
-        if (!e.target.classList.contains('converter-control-button')) {
+        const targetElement = e.target;
+        const targetElementParent = targetElement.parentElement;
+        
+        if (!targetElement.classList.contains('converter-control-button') 
+            && !targetElementParent.classList.contains('converter-control-button')) {
             setFromSelect('none');
             setToSelect('none');
         }
@@ -125,8 +142,23 @@ export default function CurrencyConverterPage() {
         document.querySelector('.converter').scrollTo(0, 0);
     }
 
+    function paste(e, handler) {
+        e.preventDefault();
+        let clipboardData = (parseFloat(e?.clipboardData.getData('Text'))).toFixed(2);
+        
+        if (clipboardData) {
+            handler(null, clipboardData);
+        } else {
+            handler(null, '');
+        }
+    }
+
     return (
         <>
+            <Helmet>
+                <title>Currency Converter page</title>
+            </Helmet>
+
             <Header
                 title='Currency Converter'
                 bgColor='#5f7aff'
@@ -152,11 +184,13 @@ export default function CurrencyConverterPage() {
                                     From
                                 </h3>
                                 <div className='converter-control'>
-                                    <CurrencyInput value={fromValue} handler={fromValueHandler} />
+                                    <CurrencyInput value={fromValue} handler={fromValueHandler} paste={paste} />
                                     <CopyValueButton value={fromValue} />
-                                    <button className='converter-control-button' onClick={() => setFromSelect('block')}>
-                                        <img src={`/images/flags/${fromCurrency}.png`} alt={fromCurrency} />
-                                        {fromCurrency} - {exchangeRate[fromCurrency].fullName}
+                                    <button 
+                                        className={`converter-control-button ${performanceMode ? '' : 'converter-blur'}`}
+                                        onClick={() => showCurrencySelector('fromSelector')}>
+                                            <img src={`/images/flags/${fromCurrency}.png`} alt={fromCurrency} />
+                                            {fromCurrency} - {exchangeRate[fromCurrency].fullName}
                                     </button>
                                     <div style={{ display: fromSelect }} className='currency-selector'>
                                         <ChangeCurrencyButton
@@ -183,11 +217,13 @@ export default function CurrencyConverterPage() {
                                     To
                                 </h3>
                                 <div className='converter-control'>
-                                    <CurrencyInput value={toValue} handler={toValueHandler} />
+                                    <CurrencyInput value={toValue} handler={toValueHandler} paste={paste} />
                                     <CopyValueButton value={toValue} />
-                                    <button className='converter-control-button' onClick={() => setToSelect('block')}>
-                                        <img src={`/images/flags/${toCurrency}.png`} alt={toCurrency} />
-                                        {toCurrency} - {exchangeRate[toCurrency].fullName}
+                                    <button 
+                                        className={`converter-control-button ${performanceMode ? '' : 'converter-blur'}`} 
+                                        onClick={() => showCurrencySelector('toSelector')}>
+                                            <img src={`/images/flags/${toCurrency}.png`} alt={toCurrency} />
+                                            {toCurrency} - {exchangeRate[toCurrency].fullName}
                                     </button>
                                     <div style={{ display: toSelect }} className='currency-selector'>
                                         <ChangeCurrencyButton
@@ -204,7 +240,10 @@ export default function CurrencyConverterPage() {
                             </div>
                         </div>
                         <h2>
-                            {fromValue || 0} <span>{fromCurrency}</span> = {toValue || 0} <span>{toCurrency}</span>
+                            {fromValue ? (+fromValue).toFixed(2) : '0.00'} 
+                            <span> {fromCurrency} </span> 
+                            = {toValue ? (+toValue).toFixed(2) : '0.00'} 
+                            <span> {toCurrency} </span>
                         </h2>
                     </div>
                     <div>
