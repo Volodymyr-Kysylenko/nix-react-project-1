@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 import PhotoCard from './PhotoCard';
 
-export default function PhotoCards({ images, sorting, showImage }) {
+export default function PhotoCards({ images, showImage }) {
 
     const [favoriteImages, setFavoriteImages] = useState(localStorage.getItem('favorites')?.split(',') || []);
 
@@ -18,38 +18,28 @@ export default function PhotoCards({ images, sorting, showImage }) {
         setFavoriteImages(localStorage.getItem('favorites')?.split(',') || []);
     }
 
-    let result = images
-        .sort((a, b) => {
-            switch (sorting) {
-                case 'date':
-                    return a.id - b.id;
-                case 'name':
-                    return a[sorting].localeCompare(b[sorting]);
-                case 'author':
-                    return a[sorting].localeCompare(b[sorting]);
-                default:
-                    return a.id - b.id;
-            }
-
-        })
-        .map((image, index) => {
-            return (
-                <PhotoCard
-                    key={image._id} 
-                    image={image}
-                    showImage={showImage}
-                    index={index}
-                    addToFavorite={addToFavorite}
-                    favoriteImages={favoriteImages}
-                />
-            )
-        })
-
-    if (result.length === 0) {
-        return <h2>
+    if (images.length === 0) {
+        return <h2 className='no-results-found'>
             No results found...
         </h2>;
     } else {
-        return result;
+        return (
+            <div className='photocards'>
+                {
+                    images.map((image, index) => {
+                        return (
+                            <PhotoCard
+                                key={image._id}
+                                image={image}
+                                showImage={showImage}
+                                index={index}
+                                addToFavorite={addToFavorite}
+                                favoriteImages={favoriteImages}
+                            />
+                        )
+                    })
+                }
+            </div>
+        );
     }
 }

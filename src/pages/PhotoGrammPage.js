@@ -42,8 +42,9 @@ export default function PhotoGrammPage() {
                     const pageArray = getPageAmount(res.count);
                     return (pageArray.length === 0) ? [1] : pageArray;
                 });
-            }).catch(() => console.error('Data request failed'));
-    }, [filter, search, currentPage, getPageAmount]);
+            })
+            .catch(() => console.error('Data request failed'));
+    }, [filter, search, currentPage]);
 
 
     useEffect(() => {
@@ -52,14 +53,15 @@ export default function PhotoGrammPage() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ page: currentPage, search: search, filter: filter })
+            body: JSON.stringify({ page: currentPage, search: search, filter: filter, sorting: sorting })
         })
             .then(res => res.json())
             .then(photos => {
                 setImages(photos);
                 setLoading(false);
             })
-    }, [filter, search, currentPage]);
+            .catch(() => console.error('Data request failed'));
+    }, [filter, search, sorting, currentPage]);
 
     useEffect(() => {
         document.querySelector('.photogramm').scrollTo(0, 0);
@@ -101,6 +103,8 @@ export default function PhotoGrammPage() {
     }
 
     function showSortingResult(sorting) {
+        setLoading(true);
+        setCurrentPage(1);
         setSorting(sorting);
     }
 
@@ -178,19 +182,15 @@ export default function PhotoGrammPage() {
                         Page {currentPage} of {pageAmount || 1}
                     </div>
                 </div>
-
-                <div className='photocards'>
                     {loading
                         ? <div className='photogramm-spinner-container'>
                             <Spinner loading={loading} />
                         </div>
                         : <PhotoCards
                             images={images}
-                            sorting={sorting}
                             showImage={showImage}
                         />
                     }
-                </div>
                 <div className='pagination'>
                     <button
                         onClick={() => { changeCurrentPage(currentPage - 1) }}

@@ -97,9 +97,9 @@ export default function CurrencyConverterPage() {
 
         if (currency === fromCurrency) {
             setFromCurrency(toCurrency);
-            setFromValue(parseFloat((toValue * exchangeRate[currency][toCurrency]).toFixed(2)));
+            setFromValue((toValue * exchangeRate[currency][toCurrency]).toFixed(2));
         } else {
-            setToValue(parseFloat((fromValue * exchangeRate[fromCurrency][currency]).toFixed(2)));
+            setToValue((fromValue * exchangeRate[fromCurrency][currency]).toFixed(2));
         }
 
         setToCurrency(currency);
@@ -130,7 +130,7 @@ export default function CurrencyConverterPage() {
 
     function setQuickFromValue(value) {
         setFromValue(value);
-        setToValue(parseFloat((value * exchangeRate[fromCurrency][toCurrency]).toFixed(2)));
+        setToValue((value * exchangeRate[fromCurrency][toCurrency]).toFixed(2));
 
         document.querySelector('.converter').scrollTo(0, 0);
     }
@@ -142,7 +142,7 @@ export default function CurrencyConverterPage() {
         document.querySelector('.converter').scrollTo(0, 0);
     }
 
-    function paste(e, handler) {
+    function pasteHandler(e, handler) {
         e.preventDefault();
         let clipboardData = (parseFloat(e?.clipboardData.getData('Text'))).toFixed(2);
         
@@ -184,7 +184,7 @@ export default function CurrencyConverterPage() {
                                     From
                                 </h3>
                                 <div className='converter-control'>
-                                    <CurrencyInput value={fromValue} handler={fromValueHandler} paste={paste} />
+                                    <CurrencyInput value={fromValue} handler={fromValueHandler} paste={pasteHandler} />
                                     <CopyValueButton value={fromValue} />
                                     <button 
                                         className={`converter-control-button ${performanceMode ? '' : 'converter-blur'}`}
@@ -217,7 +217,7 @@ export default function CurrencyConverterPage() {
                                     To
                                 </h3>
                                 <div className='converter-control'>
-                                    <CurrencyInput value={toValue} handler={toValueHandler} paste={paste} />
+                                    <CurrencyInput value={toValue} handler={toValueHandler} paste={pasteHandler} />
                                     <CopyValueButton value={toValue} />
                                     <button 
                                         className={`converter-control-button ${performanceMode ? '' : 'converter-blur'}`} 
